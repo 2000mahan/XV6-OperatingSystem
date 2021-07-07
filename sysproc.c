@@ -89,3 +89,11 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+char*
+sys_getHelloWorld(void)
+{ 
+  char* helloWorld;
+  argstr(0, (void*)&helloWorld);
+  return getHelloWorld(helloWorld);
+}

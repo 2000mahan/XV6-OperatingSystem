@@ -532,3 +532,20 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+char*
+getHelloWorld(char helloWorld[])
+{
+  helloWorld[0] = 'h';
+  helloWorld[1] = 'e';
+  helloWorld[2] = 'l';
+  helloWorld[3] = 'l';
+  helloWorld[4] = 'o';
+  helloWorld[5] = ' ';
+  helloWorld[6] = 'w';
+  helloWorld[7] = 'o';
+  helloWorld[8] = 'r';
+  helloWorld[9] = 'l';
+  helloWorld[10] = 'd';
+  return &(helloWorld[0]);
+}
