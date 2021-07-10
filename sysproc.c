@@ -90,10 +90,9 @@ sys_uptime(void)
   return xticks;
 }
 
-char*
+int
 sys_getHelloWorld(void)
 { 
-  char* helloWorld;
-  argstr(0, (void*)&helloWorld);
-  return getHelloWorld(helloWorld);
+  
+  return getHelloWorld();
 }

@@ -5,9 +5,8 @@
 int 
 main(void)
 {
-    char helloWorld[10];
-    getHelloWorld(helloWorld);
-    printf(1, "%s\n", helloWorld);
+    
+    getHelloWorld();
     exit();
 
 }

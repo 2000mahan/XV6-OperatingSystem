@@ -12,6 +12,7 @@ struct {
   struct proc proc[NPROC];
 } ptable;
 
+
 static struct proc *initproc;
 
 int nextpid = 1;
@@ -533,19 +534,10 @@ procdump(void)
   }
 }
 
-char*
-getHelloWorld(char helloWorld[])
+int
+getHelloWorld()
 {
-  helloWorld[0] = 'h';
-  helloWorld[1] = 'e';
-  helloWorld[2] = 'l';
-  helloWorld[3] = 'l';
-  helloWorld[4] = 'o';
-  helloWorld[5] = ' ';
-  helloWorld[6] = 'w';
-  helloWorld[7] = 'o';
-  helloWorld[8] = 'r';
-  helloWorld[9] = 'l';
-  helloWorld[10] = 'd';
-  return &(helloWorld[0]);
+  cprintf("Hello World\n");
+
+  return 0;
 }
