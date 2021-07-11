@@ -541,3 +541,43 @@ getHelloWorld()
 
   return 0;
 }
+
+int
+clone(void *stack)
+{
+  // newp is the new process 
+  struct proc *np;
+  uint pageSize = 4096;
+  // allocate process
+  if(newp = allocproc() == 0)
+    return -1;
+  // might be at the middle of changing address space in another thread
+  acquire(&ptable.lock);
+  np->pgdir = proc->pgdir;
+  np->sz = proc->sz;
+  release(&ptable.lock);
+
+  np->parent = proc;
+
+  // copying all trapframe register values from p into newp
+  *np->tf = *proc->tf;
+
+  // Clear %eax so that fork returns 0 in the child.
+  np->tf->eax = 0;
+
+  for(i = 0; i < NOFILE; i++)
+    if(proc->ofile[i])
+      np->ofile[i] = filedup(proc->ofile[i]);
+  np->cwd = idup(proc->cwd);
+
+  safestrcpy(np->name, proc->name, sizeof(proc->name));
+
+  pid = np->pid;
+
+  acquire(&ptable.lock);
+
+  np->state = RUNNABLE;
+
+  release(&ptable.lock);
+
+}
