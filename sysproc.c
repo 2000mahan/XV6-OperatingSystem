@@ -102,7 +102,7 @@ sys_clone(void)
   //  stackptr is stack_pointer
   void *stackptr;
   uint pageSize = 4096;
-  if(argptr(0, &stackptr, pageSize) < 0)
+  if(argptr(0, (void *)&stackptr, sizeof(void*)) < 0)
     return -1;
 
   return clone(stackptr);

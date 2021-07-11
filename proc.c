@@ -545,11 +545,11 @@ getHelloWorld()
 int
 clone(void *stack)
 {
-  // newp is the new process 
+  // np is the new process 
   struct proc *np;
   uint pageSize = 4096;
   // allocate process
-  if(newp = allocproc() == 0)
+  if(np = allocproc() == 0)
     return -1;
   // might be at the middle of changing address space in another thread
   acquire(&ptable.lock);
