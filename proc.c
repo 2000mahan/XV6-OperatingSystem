@@ -15,6 +15,8 @@ struct {
 
 static struct proc *initproc;
 
+struct spinlock thread;
+
 int nextpid = 1;
 extern void forkret(void);
 extern void trapret(void);
@@ -25,6 +27,7 @@ void
 pinit(void)
 {
   initlock(&ptable.lock, "ptable");
+  initlock(&thread, "thread");
 }
 
 // Must be called with interrupts disabled
@@ -166,6 +169,7 @@ growproc(int n)
   uint sz;
   struct proc *curproc = myproc();
 
+  acquire(&thread);
   sz = curproc->sz;
   if(n > 0){
     if((sz = allocuvm(curproc->pgdir, sz, sz + n)) == 0)
@@ -176,6 +180,52 @@ growproc(int n)
   }
 
   curproc->sz = sz;
+
+  // we should update sz in all threads due to existence of clone system call
+  struct proc *p;
+  int numberOfChildren;
+  // check if it is a child or parent
+  if(curproc->threads == -1) //child
+  {
+    // update parents sz
+    curproc->parent->sz = curproc->sz;
+    // - 2 is because of updating parent along with one child
+    numberOfChildren = curproc->parent->threads - 2;
+    if(numberOfChildren <= 0){
+      release(&ptable.lock);
+      release(&thread);
+      switchuvm(curproc);
+      return 0;
+    }
+
+    else
+      for(p = ptable.proc; p < &ptable.proc[NPROC];p++){
+      if(p!=curproc && p->parent == curproc->parent && p->threads == -1){
+        p->sz = curproc->sz;
+        numberOfChildren--;
+      }
+    }
+  }
+  else{ // is not a child
+    numberOfChildren = curproc->threads - 1;
+    if(numberOfChildren <= 0){
+      release(&ptable.lock);
+      release(&thread);
+      switchuvm(curproc);
+      return 0;
+    }
+    else
+      for(p = ptable.proc; p < &ptable.proc[NPROC];p++){
+        if(p->parent == curproc && p->threads == -1){
+          p->sz = curproc->sz;
+          numberOfChildren--;
+
+        }
+      }
+  }
+
+  release(&ptable.lock);
+  //release(&thread);
   switchuvm(curproc);
   return 0;
 }
@@ -280,6 +330,18 @@ exit(void)
   curproc->state = ZOMBIE;
   sched();
   panic("zombie exit");
+}
+
+int
+check_pgdir_share(struct proc *process)
+{
+  struct proc *p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC];p++){
+    if(p != process && p->pgdir == process->pgdir)
+      return 0;
+
+  }
+  return 1;
 }
 
 // Wait for a child process to exit and return its pid.
@@ -703,14 +765,4 @@ join(void)
   }
 }
 
-int
-check_pgdir_share(struct proc *process)
-{
-  struct proc *p;
-  for(p = ptable.proc; p < &ptable.proc[NPROC];p++){
-    if(p != process && p->pgdir == process->pgdir)
-      return 0;
 
-  }
-  return 1;
-}
