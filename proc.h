@@ -53,6 +53,7 @@ struct proc {
   int threads;                 // the number of threads using the same pgdir
 };
 
+
 // Process memory is laid out contiguously, low addresses first:
 //   text
 //   original data and bss
