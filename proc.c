@@ -307,6 +307,21 @@ wait(void)
         pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
+        
+        if(check_pgdir_share(p))
+          freevm(p->pgdir);
+
+        p->pid = 0;
+        p->parent = 0;
+        p->name[0] = 0;
+        p->killed = 0;
+        p->state = UNUSED;
+        // reset stackTop and pgdir if it is the parent
+        p->stackTop = -1;
+        p->pgdir = 0;
+        p->threads = -1; 
+
+        /*
         // only one thread exists so we can free page table
         if(p->threads == 1){
           freevm(p->pgdir);
@@ -331,7 +346,7 @@ wait(void)
           p->stackTop = -1;
           p->pgdir = 0;
           p->threads = -1;
-        }
+        }*/
         release(&ptable.lock);
         return pid;
       }
@@ -660,6 +675,10 @@ join(void)
         pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
+
+        if(check_pgdir_share(p))
+          freevm(p->pgdir);
+
         p->pid = 0;
         p->parent = 0;
         p->name[0] = 0;
@@ -682,4 +701,16 @@ join(void)
     // Wait for children to exit.  (See wakeup1 call in proc_exit.)
     sleep(curproc, &ptable.lock);  //DOC: wait-sleep
   }
+}
+
+int
+check_pgdir_share(struct proc *process)
+{
+  struct proc *p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC];p++){
+    if(p != process && p->pgdir == process->pgdir)
+      return 0;
+
+  }
+  return 1;
 }
