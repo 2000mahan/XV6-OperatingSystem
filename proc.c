@@ -89,6 +89,8 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  p->stackTop = -1; // initialize stackTop to -1 (illegal value)
+  p->threads = -1;  // initialize threads to -1 (illegal value)
 
   release(&ptable.lock);
 
@@ -131,6 +133,8 @@ userinit(void)
     panic("userinit: out of memory?");
   inituvm(p->pgdir, _binary_initcode_start, (int)_binary_initcode_size);
   p->sz = PGSIZE;
+  //only one thread is executing for this process
+  p->threads = 1;
   memset(p->tf, 0, sizeof(*p->tf));
   p->tf->cs = (SEG_UCODE << 3) | DPL_USER;
   p->tf->ds = (SEG_UDATA << 3) | DPL_USER;
@@ -198,6 +202,10 @@ fork(void)
     return -1;
   }
   np->sz = curproc->sz;
+  // child has the same stack top as parent in fork
+  np->stackTop = curproc->stackTop;
+  // there is only one thread for the child because in fork, fork creates a new pgdir for the child
+  np->threads = 1;
   np->parent = curproc;
   *np->tf = *curproc->tf;
 
@@ -249,6 +257,11 @@ exit(void)
   curproc->cwd = 0;
 
   acquire(&ptable.lock);
+
+  // if a child calls exit, decrement the number of threads sharing the same pgdir for parent
+  if(curproc->threads == -1){ 
+    curproc->parent->threads--;
+  }
 
   // Parent might be sleeping in wait().
   wakeup1(curproc->parent);
@@ -545,32 +558,50 @@ getHelloWorld()
 int
 clone(void *stack)
 {
+  int pid;
+  // curproc is the current process
+  struct proc *curproc = myproc();
   // np is the new process 
   struct proc *np;
-  uint pageSize = 4096;
   // allocate process
-  if(np = allocproc() == 0)
+  if((np = allocproc()) == 0)
     return -1;
+
+  // increase threads number for parent, default value of threads for child is -1
+    curproc->threads++;
+
+    // Remember stack grows downwards Thus the stackTop will be in the address given by parent + one page size
+    np->stackTop = (int)((char*)stack + PGSIZE);
   // might be at the middle of changing address space in another thread
   acquire(&ptable.lock);
-  np->pgdir = proc->pgdir;
-  np->sz = proc->sz;
+  np->pgdir = curproc->pgdir;
+  np->sz = curproc->sz;
   release(&ptable.lock);
 
-  np->parent = proc;
+  int bytesOnStack = curproc->stackTop - curproc->tf->esp;
+  np->tf->esp = np->stackTop - bytesOnStack;
+  memmove((void*)np->tf->esp, (void*)curproc->tf->esp, bytesOnStack);
+
+  np->parent = curproc;
 
   // copying all trapframe register values from p into newp
-  *np->tf = *proc->tf;
+  *np->tf = *curproc->tf;
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
 
-  for(i = 0; i < NOFILE; i++)
-    if(proc->ofile[i])
-      np->ofile[i] = filedup(proc->ofile[i]);
-  np->cwd = idup(proc->cwd);
+  // esp points to the top of the stack (esp is the stack pointer)
+  np->tf->esp = np->stackTop - bytesOnStack;
+  // ebp is the base pointer
+  np->tf->ebp = np->stackTop - (curproc->stackTop - curproc->tf->ebp);
 
-  safestrcpy(np->name, proc->name, sizeof(proc->name));
+  int i;
+  for(i = 0; i < NOFILE; i++)
+    if(curproc->ofile[i])
+      np->ofile[i] = filedup(curproc->ofile[i]);
+  np->cwd = idup(curproc->cwd);
+
+  safestrcpy(np->name, curproc->name, sizeof(curproc->name));
 
   pid = np->pid;
 
@@ -579,5 +610,7 @@ clone(void *stack)
   np->state = RUNNABLE;
 
   release(&ptable.lock);
+
+  return pid;
 
 }
