@@ -172,15 +172,21 @@ growproc(int n)
   acquire(&thread);
   sz = curproc->sz;
   if(n > 0){
-    if((sz = allocuvm(curproc->pgdir, sz, sz + n)) == 0)
+    if((sz = allocuvm(curproc->pgdir, sz, sz + n)) == 0){
+      release(&thread);
       return -1;
+    }
+      
   } else if(n < 0){
-    if((sz = deallocuvm(curproc->pgdir, sz, sz + n)) == 0)
+    if((sz = deallocuvm(curproc->pgdir, sz, sz + n)) == 0){
+      release(&thread);
       return -1;
+    }
+      
   }
 
   curproc->sz = sz;
-
+  acquire(&ptable.lock);
   // we should update sz in all threads due to existence of clone system call
   struct proc *p;
   int numberOfChildren;
