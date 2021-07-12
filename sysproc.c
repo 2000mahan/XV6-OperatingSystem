@@ -107,3 +107,9 @@ sys_clone(void)
   return clone((void*) stackptr);
 }
 
+int
+sys_join(void)
+{
+  return join();
+}
+
