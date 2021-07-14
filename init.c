@@ -12,7 +12,7 @@ char *argv[] = { "sh", 0 };
 int
 main(void)
 {
-  int pid, jpid;
+  int thread_id, jpid;
   // allocating 2 * pageSize for fptr in heap
   void *fptr = malloc(2 * (PAGESIZE));
   void *stack;
@@ -38,18 +38,18 @@ main(void)
   for(;;){
     printf(1, "init: starting sh\n");
 
-    pid = clone((void*)stack);
+    thread_id = clone((void*)stack);
     
-    if(pid < 0){
+    if(thread_id < 0){
       printf(1, "init: fork failed\n");
       exit();
     }
-    if(pid == 0){
+    if(thread_id == 0){
       exec("sh", argv);
       printf(1, "init: exec sh failed\n");
       exit();
     }
-    while((jpid=join()) >= 0 && jpid != pid)
+    while((jpid = join()) >= 0 && jpid != thread_id)
       printf(1, "zombie!\n");
   }
 }
