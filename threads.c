@@ -1,3 +1,4 @@
+// threads.c is for testing
 #include "types.h"
 #include "stat.h"
 #include "user.h"
