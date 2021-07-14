@@ -231,7 +231,7 @@ growproc(int n)
   }
 
   release(&ptable.lock);
-  //release(&thread);
+  release(&thread);
   switchuvm(curproc);
   return 0;
 }
