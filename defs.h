@@ -123,6 +123,8 @@ void            yield(void);
 int             getHelloWorld(void);
 int             clone(void*);
 int             join(void);
+int             lock(void); //TODO add the arguments
+int             unlock(void); //TODO add the arguments
 // swtch.S
 void            swtch(struct context**, struct context*);
 

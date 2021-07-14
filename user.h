@@ -26,6 +26,8 @@ int uptime(void);
 int getHelloWorld(void);
 int clone(void*);
 int join(void);
+int lock(void); //TODO add the arguments
+int unlock(void); //TODO add the arguments
 
 // ulib.c
 int stat(const char*, struct stat*);

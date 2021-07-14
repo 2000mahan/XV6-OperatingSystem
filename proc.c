@@ -771,4 +771,15 @@ join(void)
   }
 }
 
+//TODO pass the lock
+int 
+lock(void)
+{
+  return 0;
+}
 
+int
+unlock(void)
+{
+  return 0;
+}

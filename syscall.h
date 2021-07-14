@@ -23,3 +23,5 @@
 #define SYS_getHelloWorld 22
 #define SYS_clone 23
 #define SYS_join 24
+#define SYS_lock 25
+#define SYS_unlock 26

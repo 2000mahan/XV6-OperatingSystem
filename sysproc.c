@@ -113,3 +113,17 @@ sys_join(void)
   return join();
 }
 
+int
+sys_lock(void)
+{
+  //TODO pass them the lock
+  return lock();
+}
+
+int 
+sys_unlock(void)
+{
+  //TODO pass them the lock
+  return unlock();
+}
+
