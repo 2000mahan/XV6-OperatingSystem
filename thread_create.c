@@ -27,7 +27,7 @@ int thread_id = clone((void*)stack);
 
 // clone failed
 if(thread_id < 0)
-    printf(1, "clone failed");
+    printf(1, "clone failed\n");
     
 // child
 else if(thread_id == 0){

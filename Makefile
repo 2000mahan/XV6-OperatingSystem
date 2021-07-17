@@ -185,6 +185,7 @@ UPROGS=\
 	_sysTest\
 	_threads\
 	_threadsTest\
+	_thread_test\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
@@ -257,6 +258,7 @@ EXTRA=\
 	sysTest.c\
 	threads.c\
 	threadsTest.c\
+	thread_test.c\
 	printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
